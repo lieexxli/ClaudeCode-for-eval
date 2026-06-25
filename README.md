@@ -1,6 +1,20 @@
 # ClaudeCode-for-eval
 
-Benchmark ClaudeCode against SWE-bench tasks. Runs Claude Code CLI inside each task's Docker container and collects the resulting patch for evaluation.
+Run Claude Code CLI as an autonomous agent on [SWE-bench-Live](https://github.com/microsoft/SWE-bench-Live) tasks. The agent is given a bug description, explores the codebase inside a Docker sandbox, and produces a patch. The patch is then scored by the SWE-bench-Live evaluation harness.
+
+## How it works
+
+```
+SWE-bench task (problem_statement)
+        ↓
+Docker container (pre-built repo snapshot)
+        ↓
+Claude Code CLI (explores code, writes fix, validates)
+        ↓
+git diff → preds.json
+        ↓
+evaluation.py → resolved / unresolved
+```
 
 ## Setup
 
@@ -11,78 +25,44 @@ pip install -r requirements.txt
 pip install -r server/requirements.txt
 ```
 
-Make sure Docker is running and accessible.
+Docker must be running and your user must have access to it.
 
-## Configuration
+## Configure
 
-Create a config file (do NOT commit it — it contains credentials):
+### Option 1 — Claude OAuth token (simplest)
 
-### Option 1: Claude Code OAuth Token (Recommended)
-
-Edit `config/claude-oauth.yaml` and fill in your token:
+Edit `config/claude-oauth.yaml` and fill in your token. Get it with:
 
 ```bash
-# get your token
-cat ~/.claude/.credentials.json | python3 -c "import sys,json; print(json.load(sys.stdin)['claudeAiOauth']['accessToken'])"
+cat ~/.claude/.credentials.json \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['claudeAiOauth']['accessToken'])"
 ```
 
-### Option 2: Any LLM via OpenAI-compatible API (litellm proxy)
+### Option 2 — Any OpenAI-compatible API
 
-Routes Claude Code CLI through a local litellm proxy, so any model works.
-
-```yaml
-# config/myrun.yaml
-model:
-  model: 'openai/gpt-4o'      # any litellm model name
-  api_key: 'sk-...'
-  base_url: 'https://api.openai.com/v1'  # or any compatible endpoint
-
-agent:
-  max_step: 50
-  timeout: 300
-  workers: 1
-  tools: [Glob, Grep, Bash, Read, Edit, Write, TodoWrite]
-  user_prompt: |-
-    ...same as above...
-```
-
-### Option 3: Azure OpenAI
-
-```yaml
-model:
-  model: 'azure/gpt-4o'
-  # configure azure credentials in server/server.py::start_from_azure_openai
-```
+Create `config/myconfig.yaml` (reference `config/default.yaml`). Set `model`, `api_key`, and `base_url`. Requests are routed through a local litellm proxy so Claude Code CLI doesn't need to know the actual provider.
 
 ## Run
 
 ```bash
 python main.py \
-    --config config/myrun.yaml \
-    --run-id my-experiment \
-    --dataset lieeli/swetry1 \     # HuggingFace dataset name
+    --config config/claude-oauth.yaml \
+    --run-id my-run \
+    --dataset lieeli/swetry1 \
     --split python
 ```
 
-Or with a local jsonl file:
+Or pass a local `.jsonl` file instead of a HuggingFace dataset name.
 
-```bash
-python main.py \
-    --config config/myrun.yaml \
-    --run-id my-experiment \
-    --dataset path/to/instances.jsonl
-```
-
-Results are saved to `logs/{model}/{run-id}/preds.json`.
+Predictions are saved to `logs/{model}/{run-id}/preds.json`.
 
 ## Evaluate
 
-Use [SWE-bench-Live](https://github.com/microsoft/SWE-bench-Live) to score the predictions:
-
 ```bash
+# inside the SWE-bench-Live repo
 python -m evaluation.evaluation \
     --dataset lieeli/swetry1 \
-    --patch_dir logs/claude-sonnet-4-6/my-experiment/preds.json \
+    --patch_dir /path/to/preds.json \
     --output_dir logs/eval \
     --platform linux \
     --workers 1 \
