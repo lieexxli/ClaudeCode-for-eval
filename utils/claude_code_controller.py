@@ -69,8 +69,11 @@ class ClaudeController:
         time.sleep(10)
         container.send_command('alias claude="$HOME/.local/bin/claude"')
 
-        container.send_command(f"export ANTHROPIC_BASE_URL={self.endpoint}")
-        container.send_command(f"export ANTHROPIC_AUTH_TOKEN={self.api_key}")
+        if self.endpoint:
+            container.send_command(f"export ANTHROPIC_BASE_URL={self.endpoint}")
+            container.send_command(f"export ANTHROPIC_AUTH_TOKEN={self.api_key}")
+        else:
+            container.send_command(f"export CLAUDE_CODE_OAUTH_TOKEN={self.api_key}")
         container.send_command("export IS_SANDBOX=1")
         return container
 

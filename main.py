@@ -33,11 +33,16 @@ class Agent:
                 patch=f.read()
             return patch
 
-        server = Server()
-        if "azure" in self.model_args["model"]:
-            base_url, token = server.start_from_azure_openai(**self.model_args)
+        oauth_token = self.model_args.get("oauth_token")
+        if oauth_token:
+            server = None
+            base_url, token = None, oauth_token
         else:
-            base_url, token = server.start_from_api_key(**self.model_args)
+            server = Server()
+            if "azure" in self.model_args["model"]:
+                base_url, token = server.start_from_azure_openai(**self.model_args)
+            else:
+                base_url, token = server.start_from_api_key(**self.model_args)
         try:
             self.cc: ClaudeController = ClaudeController(
                 instance["docker_image"],
@@ -65,7 +70,8 @@ class Agent:
             print(instance["instance_id"], e, flush=True)
             print(format_exc())
         
-        server.stop()
+        if server:
+            server.stop()
         return patch
 
     def run_instances(self, 
