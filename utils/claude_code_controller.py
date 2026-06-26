@@ -86,7 +86,7 @@ class ClaudeController:
         self.container.send_command(heredoc_cmd)
 
         # run claude reading the prompt from the file to avoid shell interpolation issues
-        claude_cmd = f'claude -p "$(cat /tmp/cc_prompt.txt)" --system-prompt "{self.system_prompt}" --tools {self.tools} --max-turns {max_step}  --dangerously-skip-permissions  --output-format json  --verbose'
+        claude_cmd = f'claude -p "$(cat /tmp/cc_prompt.txt)" --system-prompt "{self.system_prompt}" --tools {self.tools} --max-turns {max_step}  --dangerously-skip-permissions  --output-format json  --verbose --effort max'
         res = self.container.send_command(claude_cmd, timelimit * 60)
         traj = [i for i in res.output.splitlines() if "session_id" in i]
         if len(traj) == 0:

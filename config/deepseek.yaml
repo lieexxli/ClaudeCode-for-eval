@@ -1,6 +1,9 @@
 model:
-  model: 'claude-opus-4-8'
-  oauth_token: 'YOUR_CLAUDE_CODE_OAUTH_TOKEN'
+  model: 'openai/deepseek-v4-pro'
+  api_key: 'YOUR_DEEPSEEK_API_KEY'
+  base_url: 'https://api.deepseek.com/v1'
+  sonnet_model: 'openai/deepseek-v4-pro'
+  haiku_model: 'openai/deepseek-v4-pro'
 
 agent:
   max_step: 50
