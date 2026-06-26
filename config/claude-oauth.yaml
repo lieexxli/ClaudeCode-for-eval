@@ -1,6 +1,6 @@
 model:
-  model: 'claude-opus-4-8'
-  oauth_token: 'YOUR_CLAUDE_CODE_OAUTH_TOKEN'
+  model: 'claude-sonnet-4-6'
+  oauth_token: 'YOUR_CLAUDE_CODE_OAUTH_TOKEN'  # cat ~/.claude/.credentials.json | python3 -c "import sys,json; print(json.load(sys.stdin)['claudeAiOauth']['accessToken'])"
 
 agent:
   max_step: 50
