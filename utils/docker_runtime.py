@@ -29,7 +29,7 @@ import docker
 CMD_OUTPUT_PS1_BEGIN = "\n###PS1JSON###\n"
 CMD_OUTPUT_PS1_END = "\n###PS1END###"
 CMD_OUTPUT_METADATA_PS1_REGEX = re.compile(
-    r"(?m)^\s*" + re.escape(CMD_OUTPUT_PS1_BEGIN.strip()) + r"\s*(.*?)\s*" + re.escape(CMD_OUTPUT_PS1_END.strip()),
+    re.escape(CMD_OUTPUT_PS1_BEGIN) + r"(.*?)" + re.escape(CMD_OUTPUT_PS1_END),
     re.DOTALL,
 )
 ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
